@@ -3,8 +3,8 @@
 KEYS[0]="dev0"
 # KEYS[1]="dev1"
 # KEYS[2]="dev2"
-CHAINID="gecko_75555-73333"
-MONIKER="lucas"
+CHAINID="gecko_74444-1"
+MONIKER="Boris"
 # Remember to change to other types of keyring like 'file' in-case exposing to outside world,
 # otherwise your balance will be wiped quickly
 # The keyring test does not require private key to steal tokens from you
@@ -32,7 +32,7 @@ command -v jq >/dev/null 2>&1 || {
 set -e
 
 # Reinstall daemon
-make install
+LEDGER_ENABLED=false make install
 
 # User prompt if an existing local node configuration is found.
 if [ -d "$HOMEDIR" ]; then
@@ -123,6 +123,17 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	total_supply=$(echo "${#KEYS[@]} * 10000000000000000000000000000" | bc)
 	jq -r --arg total_supply "$total_supply" '.app_state["bank"]["supply"][0]["amount"]=$total_supply' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 
+	sed -i 's/cors_allowed_origins = \[\]/cors_allowed_origins = \["*"\]/g' "$CONFIG"
+	sed -i 's/laddr = "tcp:\/\/127.0.0.1:26657"/laddr = "tcp:\/\/0.0.0.0:26657"/g' "$CONFIG"
+
+	sed -i 's/address = "127.0.0.1:8545"/address = "0.0.0.0:8545"/g' ~/.geckod/config/app.toml
+	sed -i 's/ws-address = "127.0.0.1:8546"/ws-address = "0.0.0.0:8546"/g' ~/.geckod/config/app.toml
+	
+	sed -i '/\[api\]/,+3 s/enable = false/enable = true/' ~/.geckod/config/app.toml
+	sed -i 's/swagger = false/swagger = true/g' ~/.geckod/config/app.toml
+	sed -i 's/enabled-unsafe-cors = false/enabled-unsafe-cors = true/g'  ~/.geckod/config/app.toml
+	sed -i 's/api = "eth,net,web3"/api = "eth,txpool,personal,net,debug,web3,pubsub,trace"/g' ~/.geckod/config/app.toml
+	
 	# Sign genesis transaction
 	geckod gentx ${KEYS[0]} 200000000000000000000000agecko --keyring-backend $KEYRING --chain-id $CHAINID --home "$HOMEDIR"
 	## In case you want to create multiple validators at genesis
@@ -145,4 +156,4 @@ fi
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
 #geckod start --pruning=nothing "$TRACE" --gas-prices 0.00001agecko --gas-adjustment 1.3 --log_level $LOGLEVEL --json-rpc.api eth,txpool,personal,net,debug,web3 --api.enable --home "$HOMEDIR"
-geckod start --pruning=nothing "$TRACE" --rpc.laddr tcp://0.0.0.0:26657 --gas-prices 0.00001agecko --gas-adjustment 1.3 --log_level $LOGLEVEL --json-rpc.api eth,txpool,personal,net,debug,web3 --api.enable --home "$HOMEDIR"
+# geckod start --pruning=nothing "$TRACE" --rpc.laddr tcp://0.0.0.0:26657 --gas-prices 0.00001agecko --gas-adjustment 1.3 --log_level $LOGLEVEL --json-rpc.api eth,txpool,personal,net,debug,web3 --api.enable --home "$HOMEDIR"
