@@ -114,13 +114,13 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 
 	# Allocate genesis accounts (cosmos formatted addresses)
 	for KEY in "${KEYS[@]}"; do
-		geckod add-genesis-account $KEY 10000000000000000000000000000agecko --keyring-backend $KEYRING --home "$HOMEDIR"
+		geckod add-genesis-account $KEY 520777741800000000000000000000000agecko --keyring-backend $KEYRING --home "$HOMEDIR"
 		#Here you can reset token ampount. can u see?yes ok
 		# geckod add-genesis-account $KEY 10000000000000000000000000000agecko --keyring-backend $KEYRING --home "$HOMEDIR"
 	done
 
 	# bc is required to add these big numbers
-	total_supply=$(echo "${#KEYS[@]} * 10000000000000000000000000000" | bc)
+	total_supply=$(echo "${#KEYS[@]} * 520777741800000000000000000000000" | bc)
 	jq -r --arg total_supply "$total_supply" '.app_state["bank"]["supply"][0]["amount"]=$total_supply' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 
 	sed -i 's/cors_allowed_origins = \[\]/cors_allowed_origins = \["*"\]/g' "$CONFIG"
